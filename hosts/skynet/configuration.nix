@@ -19,6 +19,7 @@
   };
 
   nix.settings.auto-optimise-store = true;
+  nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
   # 2. Networking
   networking.hostName = "skynet";
@@ -26,6 +27,7 @@
 
   # Set timezone to India
   time.timeZone = "Asia/Kolkata";
+  i18n.defaultLocale = "en_IN";
 
   # 3. Audio (PipeWire)
   security.rtkit.enable = true;
@@ -59,6 +61,8 @@
     enable = true;
     xwayland.enable = true; # Needed for legacy X11 apps
   };
+
+  programs.ambxst.enable = true;
 
   # 4. Environment Variables for Nvidia & Wayland
   environment.sessionVariables = {
