@@ -36,16 +36,17 @@
     matugen      # Generate Material You palette from wallpaper
     pywal16      # Classic pywal color generation
     papirus-icon-theme
-    bibata-cursors
+    kdePackages.breeze-icons
     adw-gtk3
+    jq
   ];
 
   # ── GTK theming ──────────────────────────────────────────────────────────
   gtk = {
     enable = true;
     iconTheme = {
-      name    = "Papirus-Dark";
-      package = pkgs.papirus-icon-theme;
+      name    = "Breeze-Dynamic";
+      package = pkgs.kdePackages.breeze-icons;
     };
     # CSS is managed dynamically by Ambxst, so we skip extraCss here
   };
@@ -54,7 +55,7 @@
   dconf.settings = {
     "org/gnome/desktop/interface" = {
       color-scheme = "prefer-dark";
-      icon-theme   = "Papirus-Dark";
+      icon-theme   = "Breeze-Dynamic";
       gtk-theme    = "adw-gtk3-dark";
     };
   };
@@ -175,6 +176,8 @@
           generate
           # Tell all kitty instances to reload config
           ${pkgs.procps}/bin/pkill -USR1 -x kitty || true
+          # Update folder colors
+          ${pkgs.bash}/bin/bash ~/nixos/users/spectre/hyprland/scripts/dynamic-icons.sh
         done
       ''}";
       Restart = "always";
