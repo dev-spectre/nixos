@@ -11,6 +11,21 @@
     xwayland.enable = true;
   };
 
+  environment.systemPackages = [
+    (pkgs.writeShellScriptBin "hyprland-gpu-wrapper" ''
+      intel_card=$(readlink -f /dev/dri/by-path/pci-0000:00:02.0-card)
+      nvidia_card=$(readlink -f /dev/dri/by-path/pci-0000:01:00.0-card)
+
+      if grep -q 1 /sys/class/power_supply/AC/online 2>/dev/null; then
+        export WLR_DRM_DEVICES="$nvidia_card:$intel_card"
+      else
+        export WLR_DRM_DEVICES="$intel_card:$nvidia_card"
+      fi
+
+      exec ${pkgs.hyprland}/bin/Hyprland "$@"
+    '')
+  ];
+
   # ── XDG portals ───────────────────────────────────────────────────────────
   xdg.portal = {
     enable        = true;
@@ -27,7 +42,7 @@
     settings = {
       # Runs once on boot: no password prompt, straight into Hyprland
       initial_session = {
-        command = "${pkgs.hyprland}/bin/Hyprland";
+        command = "hyprland-gpu-wrapper";
         user    = "spectre";
       };
       # Used after logout (or if you remove initial_session)

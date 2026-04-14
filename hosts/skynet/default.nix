@@ -6,6 +6,7 @@
     ./nvidia.nix
     ../../modules/nixos/hyprland.nix
     ../../modules/nixos/gnome.nix
+    ../../modules/nixos/keyring.nix
   ];
 
   # ── Bootloader ────────────────────────────────────────────────────────────
@@ -60,7 +61,7 @@
     isNormalUser = true;
     description  = "spectre";
     extraGroups  = [ "networkmanager" "wheel" "video" "input" "audio" ];
-    shell        = pkgs.fish;
+    shell        = pkgs.bashInteractive;
     packages     = with pkgs; [ ];
   };
 

@@ -6,7 +6,7 @@
     "env XDG_DATA_DIRS=$XDG_DATA_DIRS ambxst"
 
     # Secrets / keychain
-    "gnome-keyring-daemon --start --components=secrets"
+    "gnome-keyring-daemon --start --components=secrets,pkcs11"
 
     # D-Bus activation (needed for portals, screen sharing, etc.)
     "dbus-update-activation-environment --all"
