@@ -70,6 +70,7 @@
   # ── XDG ───────────────────────────────────────────────────────────────────
   xdg.enable = true;
   xdg.configFile."matugen/config.toml".source = ./matugen/config.toml;
+  xdg.configFile."fastfetch/config.jsonc".source = ./fastfetch.jsonc;
 
   # ── Starship prompt ────────────────────────────────────────────────────────
   programs.starship = {
@@ -84,6 +85,8 @@
     enable = true;
     interactiveShellInit = ''
       set -g fish_greeting
+      # Clear screen and show system info
+      fastfetch
       # Use I-beam cursor in insert mode
       set -g fish_cursor_default block
       set -g fish_cursor_insert line
@@ -98,11 +101,11 @@
       set -g fish_color_redirection purple
       set -g fish_color_end green
       set -g fish_color_error red
-      set -g fish_color_comment grey
+      set -g fish_color_comment brblack
       set -g fish_color_selection --background=brblack
       set -g fish_color_operator green
       set -g fish_color_escape pink
-      set -g fish_color_autosuggestion grey
+      set -g fish_color_autosuggestion brblack
     '';
     shellAliases = {
       ls     = "eza --icons";
@@ -145,7 +148,7 @@
       default_pointer_shape   = "arrow";
       confirm_os_window_close = 0;
       enable_audio_bell       = false;
-      window_padding_width    = 10;
+      window_padding_width    = "0 10 10 10";
     };
   };
 
