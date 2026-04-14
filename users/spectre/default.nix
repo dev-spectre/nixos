@@ -1,4 +1,4 @@
-{ pkgs, inputs, ... }:
+{ pkgs, lib, inputs, ... }:
 
 {
   imports = [
@@ -61,14 +61,15 @@
 
   # ── Cursor theme (consistent across GTK + Hyprland) ────────────────────
   home.pointerCursor = {
-    name    = "Bibata-Modern-Classic";
-    package = pkgs.bibata-cursors;
+    name    = "Adwaita";
+    package = pkgs.adwaita-icon-theme;
     size    = 24;
     gtk.enable = true;
   };
 
   # ── XDG ───────────────────────────────────────────────────────────────────
   xdg.enable = true;
+  xdg.configFile."matugen/config.toml".source = ./matugen/config.toml;
 
   # ── Starship prompt ────────────────────────────────────────────────────────
   programs.starship = {
@@ -81,7 +82,28 @@
   # ── Shell: fish (primary) ─────────────────────────────────────────────────
   programs.fish = {
     enable = true;
-    interactiveShellInit = "set -g fish_greeting";
+    interactiveShellInit = ''
+      set -g fish_greeting
+      # Use I-beam cursor in insert mode
+      set -g fish_cursor_default block
+      set -g fish_cursor_insert line
+      set -g fish_cursor_replace_one underscore
+      set -g fish_cursor_visual block
+
+      # Dynamic syntax highlighting (responds to wallpaper)
+      set -g fish_color_command green --bold
+      set -g fish_color_param cyan
+      set -g fish_color_keyword pink
+      set -g fish_color_quote yellow
+      set -g fish_color_redirection purple
+      set -g fish_color_end green
+      set -g fish_color_error red
+      set -g fish_color_comment grey
+      set -g fish_color_selection --background=brblack
+      set -g fish_color_operator green
+      set -g fish_color_escape pink
+      set -g fish_color_autosuggestion grey
+    '';
     shellAliases = {
       ls     = "eza --icons";
       ll     = "eza -lah --icons";
@@ -90,19 +112,24 @@
       nrs    = "sudo nixos-rebuild switch --flake ~/nixos#skynet";
       hms    = "home-manager switch --flake ~/nixos#spectre@skynet";
       update = "sudo nixos-rebuild switch --flake ~/nixos#skynet";
+      # Manual cleanup for wallpaper leaks
+      clean-leaks = "pgrep -u $USER mpvpaper | sort -n | head -n -1 | xargs kill -9 2>/dev/null";
     };
   };
 
   # ── Shell: bash (fallback) ────────────────────────────────────────────────
   programs.bash = {
     enable       = true;
-    shellAliases = {
-      ls  = "eza --icons";
-      ll  = "eza -lah --icons";
-      ".." = "cd ..";
-      nrs = "sudo nixos-rebuild switch --flake ~/nixos#skynet";
-      hms = "home-manager switch --flake ~/nixos#spectre@skynet";
-    };
+    initExtra = ''
+      # Force aliases to ensure they override system defaults
+      alias ls='eza --icons'
+      alias ll='eza -lah --icons'
+      alias ..='cd ..'
+      alias nrs='sudo nixos-rebuild switch --flake ~/nixos#skynet'
+      alias hms='home-manager switch --flake ~/nixos#spectre@skynet'
+      # Manual cleanup for wallpaper leaks
+      alias clean-leaks="pgrep -u $USER mpvpaper | sort -n | head -n -1 | xargs kill -9 2>/dev/null"
+    '';
   };
 
   # ── Terminal ──────────────────────────────────────────────────────────────
@@ -113,7 +140,9 @@
       include ~/.cache/wal/colors-kitty.conf
     '';
     settings = {
-      shell                   = "fish";
+      shell                   = "${pkgs.fish}/bin/fish";
+      cursor_shape            = "beam";
+      default_pointer_shape   = "arrow";
       confirm_os_window_close = 0;
       enable_audio_bell       = false;
       window_padding_width    = 10;
@@ -138,6 +167,8 @@
         generate
         
         while ${pkgs.inotify-tools}/bin/inotifywait -e modify,close_write ~/.cache/wal/colors.json; do
+          # Small delay to ensure ambxst/pywal has finished writing
+          sleep 0.2
           generate
           # Tell all kitty instances to reload config
           ${pkgs.procps}/bin/pkill -USR1 -x kitty || true
@@ -150,10 +181,13 @@
 
   # ── Ensure ambxst configs are writable ────────────────────────────────────
   home.activation = {
-    makeAmbxstConfigWritable = pkgs.lib.hm.dag.entryAfter ["writeBoundary"] ''
-      if [ -d $HOME/.config/ambxst/config ]; then
-        $DRY_RUN_CMD chmod -R u+w $HOME/.config/ambxst/config
-      fi
+    makeAmbxstConfigWritable = lib.hm.dag.entryAfter ["writeBoundary"] ''
+      for dir in "$HOME/.config/ambxst" "$HOME/.local/share/ambxst" "$HOME/.local/state/ambxst" "$HOME/.cache/ambxst"; do
+        if [ -d "$dir" ]; then
+          $DRY_RUN_CMD chmod -R u+w "$dir"
+        fi
+      done
     '';
   };
+
 }

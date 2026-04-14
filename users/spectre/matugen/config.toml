@@ -1,0 +1,13 @@
+[config]
+# Sets a custom color scheme type
+# Valid values: scheme-content, scheme-expressive, scheme-fidelity, scheme-fruit-salad, 
+# scheme-monochrome, scheme-neutral, scheme-rainbow, scheme-tonal-spot, scheme-vibrant
+theme_type = "scheme-vibrant"
+
+# Sets a custom contrast
+# Value from -1 to 1. 
+contrast = 0.4
+
+[templates]
+# We can define a template here if we want matugen to handle it directly
+# instead of relying on pywal backends.
