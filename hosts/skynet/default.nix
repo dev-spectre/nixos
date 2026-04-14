@@ -1,21 +1,23 @@
-{ config, pkgs, ... }:
+{ config, pkgs, inputs, ... }:
 
 {
   imports = [
     ./hardware-configuration.nix
+    ./nvidia.nix
+    ../../modules/nixos/hyprland.nix
+    ../../modules/nixos/gnome.nix
   ];
 
-  # Bootloader
-  boot.loader.systemd-boot.enable = true;
+  # ── Bootloader ────────────────────────────────────────────────────────────
+  boot.loader.systemd-boot.enable      = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
-  # Hostname (was "nixos" — renamed to skynet)
-  networking.hostName = "skynet";
+  # ── Networking ────────────────────────────────────────────────────────────
+  networking.hostName             = "skynet";
   networking.networkmanager.enable = true;
 
-  # Timezone & locale
-  time.timeZone = "Asia/Kolkata";
-
+  # ── Timezone & locale ────────────────────────────────────────────────────
+  time.timeZone      = "Asia/Kolkata";
   i18n.defaultLocale = "en_IN";
   i18n.extraLocaleSettings = {
     LC_ADDRESS        = "en_IN";
@@ -29,23 +31,18 @@
     LC_TIME           = "en_IN";
   };
 
-  # GNOME desktop (your current setup — unchanged)
-  services.xserver.enable = true;
-  services.xserver.displayManager.gdm.enable = true;
-  services.xserver.desktopManager.gnome.enable = true;
-
-  # Keyboard layout
+  # ── Keyboard layout ──────────────────────────────────────────────────────
   services.xserver.xkb = {
     layout  = "us";
     variant = "";
   };
 
-  # Printing
+  # ── Printing ──────────────────────────────────────────────────────────────
   services.printing.enable = true;
 
-  # Audio (Pipewire)
+  # ── Audio (Pipewire) ──────────────────────────────────────────────────────
   services.pulseaudio.enable = false;
-  security.rtkit.enable = true;
+  security.rtkit.enable      = true;
   services.pipewire = {
     enable            = true;
     alsa.enable       = true;
@@ -53,25 +50,49 @@
     pulse.enable      = true;
   };
 
-  # User
+  # ── Bluetooth ─────────────────────────────────────────────────────────────
+  hardware.bluetooth.enable      = true;
+  hardware.bluetooth.powerOnBoot = true;
+  services.blueman.enable        = true;
+
+  # ── User ──────────────────────────────────────────────────────────────────
   users.users.spectre = {
     isNormalUser = true;
     description  = "spectre";
-    extraGroups  = [ "networkmanager" "wheel" ];
+    extraGroups  = [ "networkmanager" "wheel" "video" "input" "audio" ];
+    shell        = pkgs.fish;
     packages     = with pkgs; [ ];
   };
 
-  # Programs
-  programs.firefox.enable = true;
+  # ── Shell ─────────────────────────────────────────────────────────────────
+  programs.fish.enable = true;
 
-  # Unfree (needed for NVIDIA later, harmless now)
+  # ── System packages ──────────────────────────────────────────────────────
+  programs.firefox.enable    = true;
   nixpkgs.config.allowUnfree = true;
+  environment.systemPackages = with pkgs; [
+    kitty
+    git
+    nano
+    antigravity
+    curl
+    wget
+  ];
 
-  # System packages (add things here or move to home-manager later)
-  environment.systemPackages = with pkgs; [ ];
+  # ── File manager backend ─────────────────────────────────────────────────
+  services.gvfs.enable = true;
 
-  # Nix flakes (must be set here for the flake itself to work)
+  # ── dconf (needed by GNOME and GTK apps) ─────────────────────────────────
+  programs.dconf.enable = true;
+
+  # ── Nix settings ─────────────────────────────────────────────────────────
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
+  nix.settings.auto-optimise-store   = true;
+  nix.gc = {
+    automatic = true;
+    dates     = "weekly";
+    options   = "--delete-older-than 7d";
+  };
 
   system.stateVersion = "25.11";
 }
